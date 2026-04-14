@@ -16,14 +16,17 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
-            AppTareas()
+            MaterialTheme {
+                AppTareas()
+            }
         }
     }
 }
 
-// MODELO DE TAREA
+// MODELO
 data class Tarea(
     val nombre: String,
+    val fecha: String,
     var estado: String = "En espera"
 )
 
@@ -32,7 +35,9 @@ data class Tarea(
 fun AppTareas() {
 
     var texto by remember { mutableStateOf("") }
+    var fecha by remember { mutableStateOf("") }
     var mensaje by remember { mutableStateOf("Agrega una tarea") }
+
     val listaTareas = remember { mutableStateListOf<Tarea>() }
 
     Scaffold(
@@ -43,70 +48,80 @@ fun AppTareas() {
         }
     ) { padding ->
 
-        Surface(
+        Column(
             modifier = Modifier
-                .fillMaxSize()
                 .padding(padding)
+                .padding(16.dp)
         ) {
 
-            Column(modifier = Modifier.padding(16.dp)) {
+            // INPUT NOMBRE
+            OutlinedTextField(
+                value = texto,
+                onValueChange = { texto = it },
+                label = { Text("Nombre de la tarea") },
+                modifier = Modifier.fillMaxWidth()
+            )
 
-                // INPUT
-                OutlinedTextField(
-                    value = texto,
-                    onValueChange = { texto = it },
-                    label = { Text("Nueva tarea") },
-                    modifier = Modifier.fillMaxWidth()
-                )
+            Spacer(modifier = Modifier.height(8.dp))
 
-                Spacer(modifier = Modifier.height(10.dp))
+            // INPUT FECHA (SOLO TEXTO)
+            OutlinedTextField(
+                value = fecha,
+                onValueChange = { fecha = it },
+                label = { Text("Fecha de entrega") },
+                modifier = Modifier.fillMaxWidth()
+            )
 
-                // BOTÓN
-                Button(
-                    onClick = {
-                        if (texto.isNotEmpty()) {
-                            listaTareas.add(Tarea(texto))
-                            mensaje = "Tarea agregada "
-                            texto = ""
-                        } else {
-                            mensaje = "Escribe algo primero "
-                        }
-                    },
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Text("Agregar tarea")
-                }
+            Spacer(modifier = Modifier.height(10.dp))
 
-                Spacer(modifier = Modifier.height(10.dp))
+            // BOTÓN
+            Button(
+                onClick = {
+                    if (texto.isNotEmpty() && fecha.isNotEmpty()) {
+                        listaTareas.add(Tarea(texto, fecha))
+                        mensaje = "Tarea agregada ✅"
+                        texto = ""
+                        fecha = ""
+                    } else {
+                        mensaje = "Completa todos los campos ⚠️"
+                    }
+                },
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text("Agregar tarea")
+            }
 
-                // MENSAJE DINÁMICO
-                Text(text = mensaje)
+            Spacer(modifier = Modifier.height(10.dp))
 
-                Spacer(modifier = Modifier.height(10.dp))
+            // MENSAJE DINÁMICO
+            Text(text = mensaje)
 
-                // LISTA DE TAREAS
-                LazyColumn {
-                    items(listaTareas) { tarea ->
-                        Card(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(vertical = 5.dp)
-                                .clickable {
+            Spacer(modifier = Modifier.height(10.dp))
 
-                                    // CAMBIAR ESTADO AL TOCAR
-                                    tarea.estado = when (tarea.estado) {
-                                        "En espera" -> "En proceso"
-                                        "En proceso" -> "Finalizado"
-                                        else -> "En espera"
-                                    }
+            // LISTA
+            LazyColumn {
+                items(listaTareas) { tarea ->
 
-                                    mensaje = "Estado actualizado "
+                    Card(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 5.dp)
+                            .clickable {
+
+                                // CAMBIO MANUAL DE ESTADO
+                                tarea.estado = when (tarea.estado) {
+                                    "En espera" -> "En proceso"
+                                    "En proceso" -> "Finalizado"
+                                    else -> "En espera"
                                 }
-                        ) {
-                            Column(modifier = Modifier.padding(16.dp)) {
-                                Text(text = tarea.nombre)
-                                Text(text = "Estado: ${tarea.estado}")
+
+                                mensaje = "Estado actualizado 🔄"
                             }
+                    ) {
+                        Column(modifier = Modifier.padding(16.dp)) {
+                            Text(text = tarea.nombre)
+                            Text(text = "Fecha: ${tarea.fecha}")
+                            Text(text = "Estado: ${tarea.estado}")
                         }
                     }
                 }
